@@ -206,4 +206,17 @@
   });
 
   // On load: check if 'code' is in URL, exchange for token
-  win
+  window.onload = async () => {
+    const code = getQueryParam('code');
+    if (code) {
+      // Remove code from URL so user doesn't see it
+      window.history.replaceState({}, document.title, REDIRECT_URI);
+      await exchangeCodeForToken(code);
+      updateUI();
+    } else {
+      updateUI();
+    }
+  };
+</script>
+</body>
+</html>
