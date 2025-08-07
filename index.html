@@ -23,7 +23,7 @@
 
 <script>
   const CLIENT_ID = "2cf9bbde938149269d0da9bb6438ab40";
-  const REDIRECT_URI = window.location.origin + window.location.pathname; // Keep on same page
+  const REDIRECT_URI = window.location.origin + window.location.pathname; // same page
   const SCOPES = [
     "playlist-read-private",
     "playlist-read-collaborative",
@@ -98,13 +98,8 @@
       return;
     }
 
-    // IMPORTANT:
-    // You MUST create a backend endpoint to exchange code for tokens securely.
-    // Frontend cannot safely call Spotify's /api/token directly (would expose client_secret).
-    // Replace the URL below with your backend endpoint that does the exchange.
-
     try {
-      const response = await fetch('https://your-backend.example.com/exchange_token', {
+      const response = await fetch('https://spotifyauthproxy-pio.qzd.workers.dev/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
