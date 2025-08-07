@@ -22,62 +22,119 @@
   </div>
 
 <script>
-  const CLIENT_ID = "2cf9bbde938149269d0da9bb6438ab40";
-  const REDIRECT_URI = window.location.origin + window.location.pathname; // same page
-  const SCOPES = [
+  // Helpers for PKCE: generate code verifier and code challenge
+  function base64urlencode(str) {
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  async function sha256(plain) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(plain);
+    return await crypto.subtle.digest('SHA-256', data);
+  }
+
+  function generateCodeVerifier() {
+    const array = new Uint8Array(128);
+    crypto.getRandomValues(array);
+    return base64urlencode(array);
+  }
+
+  async function generateCodeChallenge(verifier) {
+    const hashed = await sha256(verifier);
+    return base64urlencode(hashed);
+  }
+
+  // Save and retrieve code verifier in localStorage
+  function saveCodeVerifier(verifier) {
+    localStorage.setItem('pkce_code_verifier', verifier);
+  }
+  function getCodeVerifier() {
+    return localStorage.getItem('pkce_code_verifier');
+  }
+  function clearCodeVerifier() {
+    localStorage.removeItem('pkce_code_verifier');
+  }
+
+  // Your config
+  const client_id = '2cf9bbde938149269d0da9bb6438ab40';
+  const redirect_uri = 'https://playlistsinone.queazified.co.uk/';
+  const scopes = [
     "playlist-read-private",
     "playlist-read-collaborative",
     "playlist-modify-public",
     "playlist-modify-private"
-  ].join(" ");
+  ].join(' ');
 
-  function base64UrlEncode(arrayBuffer) {
-    let str = '';
-    const bytes = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < bytes.byteLength; i++) {
-      str += String.fromCharCode(bytes[i]);
+  async function login() {
+    const verifier = generateCodeVerifier();
+    saveCodeVerifier(verifier);
+    const challenge = await generateCodeChallenge(verifier);
+
+    const params = new URLSearchParams({
+      client_id,
+      response_type: 'code',
+      redirect_uri,
+      scope: scopes,
+      code_challenge_method: 'S256',
+      code_challenge: challenge,
+    });
+
+    window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+  }
+
+  async function handleRedirect() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+
+    if (!code) return;
+
+    const verifier = getCodeVerifier();
+    if (!verifier) {
+      console.error('Code verifier not found. Please try logging in again.');
+      return;
     }
-    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
 
-  function generateCodeVerifier(length = 128) {
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return base64UrlEncode(array);
-  }
+    // Exchange code + verifier via your proxy Worker
+    try {
+      const response = await fetch('https://spotifyauthproxy-pio.qzd.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          code_verifier: verifier,
+          redirect_uri,
+        }),
+      });
 
-  async function generateCodeChallenge(codeVerifier) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(codeVerifier);
-    const digest = await crypto.subtle.digest('SHA-256', data);
-    return base64UrlEncode(digest);
-  }
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
 
-  function setCodeVerifier(verifier) {
-    localStorage.setItem('code_verifier', verifier);
-    console.log('code_verifier stored:', verifier);
-  }
-  function getCodeVerifier() {
-    const v = localStorage.getItem('code_verifier');
-    console.log('code_verifier read:', v);
-    return v;
-  }
-  function clearCodeVerifier() {
-    localStorage.removeItem('code_verifier');
-  }
+      const data = await response.json();
+      console.log('Token data:', data);
 
-  function setAccessToken(token) {
-    localStorage.setItem('spotify_token', token);
-  }
-  function getAccessToken() {
-    return localStorage.getItem('spotify_token');
-  }
-  function clearAccessToken() {
-    localStorage.removeItem('spotify_token');
+      clearCodeVerifier();
+
+      // Save your tokens as needed (e.g., localStorage)
+      localStorage.setItem('spotify_token', data.access_token);
+
+      // Clean URL (remove code param)
+      window.history.replaceState({}, document.title, redirect_uri);
+
+      // Continue your app flow (show UI, etc)
+      updateUI();
+
+    } catch (err) {
+      console.error('Error exchanging code for token:', err);
+      alert('Authentication failed, please try again.');
+    }
   }
 
   function updateUI() {
-    if (getAccessToken()) {
+    const token = localStorage.getItem('spotify_token');
+    if (token) {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('app-section').style.display = 'block';
     } else {
@@ -86,151 +143,17 @@
     }
   }
 
-  function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-  }
-
-  async function exchangeCodeForToken(code) {
-    const codeVerifier = getCodeVerifier();
-    if (!codeVerifier) {
-      alert('Code verifier not found. Please try logging in again.');
-      return;
-    }
-
-    try {
-      const response = await fetch('https://spotifyauthproxy-pio.qzd.workers.dev/', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          client_id: CLIENT_ID,
-          code,
-          redirect_uri: REDIRECT_URI,
-          code_verifier: codeVerifier,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Token exchange failed');
-
-      const data = await response.json();
-      const accessToken = data.access_token;
-      if (accessToken) {
-        setAccessToken(accessToken);
-        clearCodeVerifier();
-        updateUI();
-        document.getElementById('status').textContent = 'Login successful!';
-      } else {
-        throw new Error('No access token returned');
-      }
-    } catch (err) {
-      alert('Error exchanging code for token: ' + err.message);
-    }
-  }
-
-  document.getElementById('login-btn').addEventListener('click', async () => {
-    const codeVerifier = generateCodeVerifier();
-    setCodeVerifier(codeVerifier);
-    const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-    const params = new URLSearchParams({
-      client_id: CLIENT_ID,
-      response_type: 'code',
-      redirect_uri: REDIRECT_URI,
-      code_challenge_method: 'S256',
-      code_challenge: codeChallenge,
-      scope: SCOPES,
-    });
-
-    window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
-  });
-
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    clearAccessToken();
-    clearCodeVerifier();
+  window.onload = () => {
     updateUI();
-    document.getElementById('status').textContent = '';
-  });
+    handleRedirect();
 
-  async function mergePlaylists() {
-    const status = document.getElementById('status');
-    const token = getAccessToken();
-    if (!token) {
-      status.textContent = 'Please login first.';
-      return;
-    }
-
-    status.textContent = "Fetching playlists...";
-    try {
-      const playlistsRes = await fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const playlistsData = await playlistsRes.json();
-      const playlists = playlistsData.items;
-
-      let trackURIs = [];
-      for (const playlist of playlists) {
-        const tracksRes = await fetch(playlist.tracks.href, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const tracksData = await tracksRes.json();
-        trackURIs.push(...tracksData.items.map(item => item.track.uri));
-      }
-
-      const userRes = await fetch("https://api.spotify.com/v1/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const user = await userRes.json();
-
-      const createPlaylistRes = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: "Playlists → One",
-          description: "Merged by playlistsinone.queazified.co.uk",
-          public: false,
-        }),
-      });
-
-      const createdPlaylist = await createPlaylistRes.json();
-      status.textContent = `Created playlist: ${createdPlaylist.name}, adding tracks...`;
-
-      for (let i = 0; i < trackURIs.length; i += 100) {
-        const batch = trackURIs.slice(i, i + 100);
-        await fetch(`https://api.spotify.com/v1/playlists/${createdPlaylist.id}/tracks`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ uris: batch }),
-        });
-      }
-
-      status.textContent = "All tracks added to the new playlist!";
-    } catch (error) {
-      status.textContent = "Error merging playlists: " + error.message;
-    }
-  }
-
-  document.getElementById('merge-btn').addEventListener('click', () => {
-    mergePlaylists();
-  });
-
-  window.onload = async () => {
-    const code = getQueryParam('code');
-    if (code) {
-      // Clean URL (remove code param)
-      const newURL = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, newURL);
-
-      // Exchange code for token
-      await exchangeCodeForToken(code);
-    }
-    updateUI();
+    document.getElementById('login-btn').onclick = () => login();
+    document.getElementById('logout-btn').onclick = () => {
+      localStorage.removeItem('spotify_token');
+      updateUI();
+    };
   };
 </script>
+
 </body>
 </html>
