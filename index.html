@@ -23,7 +23,7 @@
 
 <script>
   const CLIENT_ID = "2cf9bbde938149269d0da9bb6438ab40";
-  const REDIRECT_URI = "https://playlistsinone.queazified.co.uk/callback";
+  const REDIRECT_URI = window.location.origin + window.location.pathname; // Keep on same page
   const SCOPES = [
     "playlist-read-private",
     "playlist-read-collaborative",
@@ -31,22 +31,21 @@
     "playlist-modify-private"
   ].join(" ");
 
-  // Utility: base64-url encode
-  function base64UrlEncode(str) {
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
+  function base64UrlEncode(arrayBuffer) {
+    let str = '';
+    const bytes = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+      str += String.fromCharCode(bytes[i]);
+    }
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
 
-  // Generate a random string (code_verifier)
   function generateCodeVerifier(length = 128) {
     const array = new Uint8Array(length);
     crypto.getRandomValues(array);
     return base64UrlEncode(array);
   }
 
-  // SHA256 hash then base64-url encode (code_challenge)
   async function generateCodeChallenge(codeVerifier) {
     const encoder = new TextEncoder();
     const data = encoder.encode(codeVerifier);
@@ -54,18 +53,19 @@
     return base64UrlEncode(digest);
   }
 
-  // Store code_verifier temporarily
   function setCodeVerifier(verifier) {
     localStorage.setItem('code_verifier', verifier);
+    console.log('code_verifier stored:', verifier);
   }
   function getCodeVerifier() {
-    return localStorage.getItem('code_verifier');
+    const v = localStorage.getItem('code_verifier');
+    console.log('code_verifier read:', v);
+    return v;
   }
   function clearCodeVerifier() {
     localStorage.removeItem('code_verifier');
   }
 
-  // Store access token
   function setAccessToken(token) {
     localStorage.setItem('spotify_token', token);
   }
@@ -76,7 +76,6 @@
     localStorage.removeItem('spotify_token');
   }
 
-  // Update UI depending on token presence
   function updateUI() {
     if (getAccessToken()) {
       document.getElementById('login-section').style.display = 'none';
@@ -87,13 +86,11 @@
     }
   }
 
-  // Parse query params from URL
   function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
   }
 
-  // Exchange the authorization code for an access token
   async function exchangeCodeForToken(code) {
     const codeVerifier = getCodeVerifier();
     if (!codeVerifier) {
@@ -101,20 +98,40 @@
       return;
     }
 
-    // NOTE:
-    // You MUST implement this call on a backend or serverless function to keep your client_secret safe!
-    // Frontend cannot securely call Spotify's /api/token endpoint because client_secret would be exposed.
-    //
-    // Here is what you should do:
-    // POST /your-backend/exchange_token
-    // body: { code, redirect_uri: REDIRECT_URI, code_verifier, client_id: CLIENT_ID }
-    // Backend exchanges code for tokens with Spotify securely and returns the access_token to frontend.
+    // IMPORTANT:
+    // You MUST create a backend endpoint to exchange code for tokens securely.
+    // Frontend cannot safely call Spotify's /api/token directly (would expose client_secret).
+    // Replace the URL below with your backend endpoint that does the exchange.
 
-    // For demo purposes only, you can’t do this securely on frontend, so the function is a placeholder.
-    alert("You need a backend to exchange authorization code for token securely.");
+    try {
+      const response = await fetch('https://your-backend.example.com/exchange_token', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          client_id: CLIENT_ID,
+          code,
+          redirect_uri: REDIRECT_URI,
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Token exchange failed');
+
+      const data = await response.json();
+      const accessToken = data.access_token;
+      if (accessToken) {
+        setAccessToken(accessToken);
+        clearCodeVerifier();
+        updateUI();
+        document.getElementById('status').textContent = 'Login successful!';
+      } else {
+        throw new Error('No access token returned');
+      }
+    } catch (err) {
+      alert('Error exchanging code for token: ' + err.message);
+    }
   }
 
-  // Login button click: start PKCE flow
   document.getElementById('login-btn').addEventListener('click', async () => {
     const codeVerifier = generateCodeVerifier();
     setCodeVerifier(codeVerifier);
@@ -132,18 +149,20 @@
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
   });
 
-  // Logout button clears token
   document.getElementById('logout-btn').addEventListener('click', () => {
     clearAccessToken();
     clearCodeVerifier();
     updateUI();
+    document.getElementById('status').textContent = '';
   });
 
-  // Merge playlists function remains same, uses getAccessToken()
   async function mergePlaylists() {
     const status = document.getElementById('status');
     const token = getAccessToken();
-    if (!token) return;
+    if (!token) {
+      status.textContent = 'Please login first.';
+      return;
+    }
 
     status.textContent = "Fetching playlists...";
     try {
@@ -205,17 +224,17 @@
     mergePlaylists();
   });
 
-  // On load: check if 'code' is in URL, exchange for token
   window.onload = async () => {
     const code = getQueryParam('code');
     if (code) {
-      // Remove code from URL so user doesn't see it
-      window.history.replaceState({}, document.title, REDIRECT_URI);
+      // Clean URL (remove code param)
+      const newURL = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, newURL);
+
+      // Exchange code for token
       await exchangeCodeForToken(code);
-      updateUI();
-    } else {
-      updateUI();
     }
+    updateUI();
   };
 </script>
 </body>
