@@ -21,135 +21,189 @@
     <p id="status"></p>
   </div>
 
-  <script>
-    const CLIENT_ID = "2cf9bbde938149269d0da9bb6438ab40";
-    const REDIRECT_URI = "https://playlistsinone.queazified.co.uk/callback";
-    const SCOPES = [
-      "playlist-read-private",
-      "playlist-read-collaborative",
-      "playlist-modify-public",
-      "playlist-modify-private"
-    ].join(" ");
+<script>
+  const CLIENT_ID = "2cf9bbde938149269d0da9bb6438ab40";
+  const REDIRECT_URI = "https://playlistsinone.queazified.co.uk/callback";
+  const SCOPES = [
+    "playlist-read-private",
+    "playlist-read-collaborative",
+    "playlist-modify-public",
+    "playlist-modify-private"
+  ].join(" ");
 
-    function getTokenFromHash() {
-      const hash = window.location.hash;
-      if (!hash) return null;
-      const params = new URLSearchParams(hash.substring(1));
-      return params.get("access_token");
+  // Utility: base64-url encode
+  function base64UrlEncode(str) {
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
+
+  // Generate a random string (code_verifier)
+  function generateCodeVerifier(length = 128) {
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return base64UrlEncode(array);
+  }
+
+  // SHA256 hash then base64-url encode (code_challenge)
+  async function generateCodeChallenge(codeVerifier) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return base64UrlEncode(digest);
+  }
+
+  // Store code_verifier temporarily
+  function setCodeVerifier(verifier) {
+    localStorage.setItem('code_verifier', verifier);
+  }
+  function getCodeVerifier() {
+    return localStorage.getItem('code_verifier');
+  }
+  function clearCodeVerifier() {
+    localStorage.removeItem('code_verifier');
+  }
+
+  // Store access token
+  function setAccessToken(token) {
+    localStorage.setItem('spotify_token', token);
+  }
+  function getAccessToken() {
+    return localStorage.getItem('spotify_token');
+  }
+  function clearAccessToken() {
+    localStorage.removeItem('spotify_token');
+  }
+
+  // Update UI depending on token presence
+  function updateUI() {
+    if (getAccessToken()) {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('app-section').style.display = 'block';
+    } else {
+      document.getElementById('login-section').style.display = 'block';
+      document.getElementById('app-section').style.display = 'none';
+    }
+  }
+
+  // Parse query params from URL
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+  // Exchange the authorization code for an access token
+  async function exchangeCodeForToken(code) {
+    const codeVerifier = getCodeVerifier();
+    if (!codeVerifier) {
+      alert('Code verifier not found. Please try logging in again.');
+      return;
     }
 
-    function setToken(token) {
-      localStorage.setItem("spotify_token", token);
-    }
+    // NOTE:
+    // You MUST implement this call on a backend or serverless function to keep your client_secret safe!
+    // Frontend cannot securely call Spotify's /api/token endpoint because client_secret would be exposed.
+    //
+    // Here is what you should do:
+    // POST /your-backend/exchange_token
+    // body: { code, redirect_uri: REDIRECT_URI, code_verifier, client_id: CLIENT_ID }
+    // Backend exchanges code for tokens with Spotify securely and returns the access_token to frontend.
 
-    function getToken() {
-      return localStorage.getItem("spotify_token");
-    }
+    // For demo purposes only, you can’t do this securely on frontend, so the function is a placeholder.
+    alert("You need a backend to exchange authorization code for token securely.");
+  }
 
-    function clearToken() {
-      localStorage.removeItem("spotify_token");
-    }
+  // Login button click: start PKCE flow
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const codeVerifier = generateCodeVerifier();
+    setCodeVerifier(codeVerifier);
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-    function updateUI() {
-      if (getToken()) {
-        document.getElementById("login-section").style.display = "none";
-        document.getElementById("app-section").style.display = "block";
-      } else {
-        document.getElementById("login-section").style.display = "block";
-        document.getElementById("app-section").style.display = "none";
+    const params = new URLSearchParams({
+      client_id: CLIENT_ID,
+      response_type: 'code',
+      redirect_uri: REDIRECT_URI,
+      code_challenge_method: 'S256',
+      code_challenge: codeChallenge,
+      scope: SCOPES,
+    });
+
+    window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  });
+
+  // Logout button clears token
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    clearAccessToken();
+    clearCodeVerifier();
+    updateUI();
+  });
+
+  // Merge playlists function remains same, uses getAccessToken()
+  async function mergePlaylists() {
+    const status = document.getElementById('status');
+    const token = getAccessToken();
+    if (!token) return;
+
+    status.textContent = "Fetching playlists...";
+    try {
+      const playlistsRes = await fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const playlistsData = await playlistsRes.json();
+      const playlists = playlistsData.items;
+
+      let trackURIs = [];
+      for (const playlist of playlists) {
+        const tracksRes = await fetch(playlist.tracks.href, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const tracksData = await tracksRes.json();
+        trackURIs.push(...tracksData.items.map(item => item.track.uri));
       }
-    }
 
-    async function mergePlaylists() {
-      const status = document.getElementById("status");
-      const token = getToken();
-      if (!token) return;
+      const userRes = await fetch("https://api.spotify.com/v1/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const user = await userRes.json();
 
-      status.textContent = "Fetching playlists...";
-      try {
-        const playlistsRes = await fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const playlistsData = await playlistsRes.json();
-        const playlists = playlistsData.items;
+      const createPlaylistRes = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Playlists → One",
+          description: "Merged by playlistsinone.queazified.co.uk",
+          public: false,
+        }),
+      });
 
-        let trackURIs = [];
-        for (const playlist of playlists) {
-          const tracksRes = await fetch(playlist.tracks.href, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const tracksData = await tracksRes.json();
-          trackURIs.push(...tracksData.items.map(item => item.track.uri));
-        }
+      const createdPlaylist = await createPlaylistRes.json();
+      status.textContent = `Created playlist: ${createdPlaylist.name}, adding tracks...`;
 
-        const userRes = await fetch("https://api.spotify.com/v1/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const user = await userRes.json();
-
-        const createPlaylistRes = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+      for (let i = 0; i < trackURIs.length; i += 100) {
+        const batch = trackURIs.slice(i, i + 100);
+        await fetch(`https://api.spotify.com/v1/playlists/${createdPlaylist.id}/tracks`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            name: "Playlists → One",
-            description: "Merged by playlistsinone.queazified.co.uk",
-            public: false,
-          }),
+          body: JSON.stringify({ uris: batch }),
         });
-
-        const createdPlaylist = await createPlaylistRes.json();
-        status.textContent = `Created playlist: ${createdPlaylist.name}, adding tracks...`;
-
-        for (let i = 0; i < trackURIs.length; i += 100) {
-          const batch = trackURIs.slice(i, i + 100);
-          await fetch(`https://api.spotify.com/v1/playlists/${createdPlaylist.id}/tracks`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ uris: batch }),
-          });
-        }
-
-        status.textContent = "All tracks added to the new playlist!";
-      } catch (error) {
-        status.textContent = "Error merging playlists: " + error.message;
       }
+
+      status.textContent = "All tracks added to the new playlist!";
+    } catch (error) {
+      status.textContent = "Error merging playlists: " + error.message;
     }
+  }
 
-    document.getElementById("login-btn").addEventListener("click", () => {
-      const authUrl =
-        "https://accounts.spotify.com/authorize?" +
-        new URLSearchParams({
-          client_id: CLIENT_ID,
-          redirect_uri: REDIRECT_URI,
-          response_type: "token",
-          scope: SCOPES,
-        }).toString();
-      window.location.href = authUrl;
-    });
+  document.getElementById('merge-btn').addEventListener('click', () => {
+    mergePlaylists();
+  });
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      clearToken();
-      updateUI();
-    });
-
-    document.getElementById("merge-btn").addEventListener("click", () => {
-      mergePlaylists();
-    });
-
-    window.onload = () => {
-      const token = getTokenFromHash();
-      if (token) {
-        setToken(token);
-        window.location.hash = "";
-      }
-      updateUI();
-    };
-  </script>
-</body>
-</html>
+  // On load: check if 'code' is in URL, exchange for token
+  win
