@@ -88,6 +88,240 @@
             box-shadow: none;
         }
 
+        .hidden {
+            display: none;
+        }
+
+        .status {
+            margin: 1rem 0;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: rgba(29, 185, 84, 0.2);
+            border: 1px solid #1DB954;
+            color: #1DB954;
+        }
+
+        .status.error {
+            background: rgba(226, 33, 52, 0.2);
+            border: 1px solid #e22134;
+            color: #e22134;
+        }
+
+        .status.info {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1DB954;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .user-info h3 {
+            color: #1DB954;
+            margin-bottom: 5px;
+        }
+
+        .playlist-selector {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .playlist-selector h3 {
+            color: #1DB954;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .playlist-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .playlist-checkbox {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            accent-color: #1DB954;
+        }
+
+        .playlist-info {
+            flex: 1;
+        }
+
+        .playlist-name {
+            font-weight: bold;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .playlist-details {
+            font-size: 12px;
+            color: #b3b3b3;
+        }
+
+        .selection-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .selection-controls button {
+            padding: 6px 12px;
+            background: rgba(29, 185, 84, 0.2);
+            border: 1px solid #1DB954;
+            color: #1DB954;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .selection-controls button:hover {
+            background: #1DB954;
+            color: white;
+        }
+
+        .merge-options {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .merge-options h3 {
+            color: #1DB954;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .merge-options label {
+            display: block;
+            margin-bottom: 10px;
+            color: #b3b3b3;
+            font-size: 14px;
+        }
+
+        .merge-settings {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .setting-group input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #1DB954;
+        }
+
+        .merge-options select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #666;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .merge-options select option {
+            background: #191414;
+            color: white;
+        }
+
+        .merge-options select:focus {
+            outline: none;
+            border-color: #1DB954;
+        }
+
+        .filter-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .filter-section h5 {
+            color: #1DB954;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .range-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-input input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 12px;
+        }
+
         .stats-panel {
             background: rgba(29, 185, 84, 0.1);
             border: 1px solid rgba(29, 185, 84, 0.3);
@@ -165,71 +399,6 @@
             font-weight: bold;
         }
 
-        .merge-settings {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .setting-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .setting-group label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .setting-group input[type="checkbox"] {
-            margin-right: 8px;
-            accent-color: #1DB954;
-        }
-
-        .setting-group input[type="radio"] {
-            margin-right: 8px;
-            accent-color: #1DB954;
-        }
-
-        .filter-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .filter-section h5 {
-            color: #1DB954;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .filter-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-
-        .range-input {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .range-input input {
-            flex: 1;
-            padding: 6px;
-            border: 1px solid #666;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 12px;
-        }
-
         .progress-detail {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
@@ -248,84 +417,17 @@
             margin: 10px 0;
         }
 
-        .merge-options select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #666;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            margin-top: 5px;
-            margin-bottom: 10px;
-        }
-
-        .merge-options select option {
-            background: #191414;
-            color: white;
-        }
-
-        .merge-options select:focus {
-            outline: none;
-            border-color: #1DB954;
-        }
-
-        .status {
-            margin: 1rem 0;
-            padding: 10px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        .status.success {
-            background: rgba(29, 185, 84, 0.2);
-            border: 1px solid #1DB954;
-            color: #1DB954;
-        }
-
-        .status.error {
-            background: rgba(226, 33, 52, 0.2);
-            border: 1px solid #e22134;
-            color: #e22134;
-        }
-
-        .status.info {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid #ffc107;
-            color: #ffc107;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #1DB954;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-
-        .user-info h3 {
-            color: #1DB954;
-            margin-bottom: 5px;
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1DB954, #1ed760);
+            width: 0%;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Playlists in One</h1>
+        <h1>🎵 Playlists in One</h1>
         <p>Merge all your Spotify playlists into one super playlist!</p>
         
         <div id="loginSection">
@@ -349,7 +451,7 @@
                 </div>
                 <div id="playlistList"></div>
             </div>
-            
+
             <div id="mergeOptions" class="merge-options hidden">
                 <h3>Merge Options</h3>
                 <div class="merge-settings">
@@ -363,6 +465,10 @@
                         <label>
                             <input type="checkbox" id="removeDuplicates" checked> Remove duplicates
                         </label>
+                        <label>Merge into existing playlist (optional):</label>
+                        <select id="targetPlaylist">
+                            <option value="">Create new playlist</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -384,7 +490,6 @@
                         <div class="range-input">
                             <label>Max Duration (sec):</label>
                             <input type="number" id="maxDuration" placeholder="600" min="1">
-                        </label>
                         </div>
                         <label>
                             <input type="checkbox" id="explicitFilter"> Exclude explicit content
@@ -567,6 +672,19 @@
 
                     const tokens = await response.json();
                     console.log('Tokens received:', { hasAccessToken: !!tokens.access_token, hasRefreshToken: !!tokens.refresh_token });
+                    
+                    // Store access token
+                    localStorage.setItem('spotify_access_token', tokens.access_token);
+                    if (tokens.refresh_token) {
+                        localStorage.setItem('spotify_refresh_token', tokens.refresh_token);
+                    }
+                    
+                    // Clean up code verifier
+                    localStorage.removeItem('spotify_code_verifier');
+                    
+                    await this.fetchUserInfo();
+                    this.updateUI();
+                    this.showStatus('Successfully logged in!', 'success');
                 } catch (fetchError) {
                     console.error('Fetch error details:', fetchError);
                     if (fetchError.message === 'Failed to fetch') {
@@ -574,19 +692,6 @@
                     }
                     throw fetchError;
                 }
-                
-                // Store access token
-                localStorage.setItem('spotify_access_token', tokens.access_token);
-                if (tokens.refresh_token) {
-                    localStorage.setItem('spotify_refresh_token', tokens.refresh_token);
-                }
-                
-                // Clean up code verifier
-                localStorage.removeItem('spotify_code_verifier');
-                
-                await this.fetchUserInfo();
-                this.updateUI();
-                this.showStatus('Successfully logged in!', 'success');
             }
 
             async fetchUserInfo() {
@@ -668,6 +773,10 @@
                     this.updateSelectionStats();
                     
                     document.getElementById('playlistSelector').classList.remove('hidden');
+                    document.getElementById('mergeOptions').classList.remove('hidden');
+                    document.getElementById('statsPanel').classList.remove('hidden');
+                    document.getElementById('analyzeBtn').classList.remove('hidden');
+                    document.getElementById('mergeBtn').classList.remove('hidden');
                     
                     this.showStatus(`Loaded ${this.allPlaylists.length} playlists. Select which ones to merge!`, 'success');
 
@@ -705,6 +814,25 @@
                 });
             }
 
+            populateTargetPlaylistDropdown() {
+                const targetSelect = document.getElementById('targetPlaylist');
+                
+                // Clear existing options except the first one
+                while (targetSelect.children.length > 1) {
+                    targetSelect.removeChild(targetSelect.lastChild);
+                }
+                
+                // Add owned playlists as options
+                this.allPlaylists.forEach(playlist => {
+                    if (playlist.owner.id === this.currentUserId) {
+                        const option = document.createElement('option');
+                        option.value = playlist.id;
+                        option.textContent = playlist.name;
+                        targetSelect.appendChild(option);
+                    }
+                });
+            }
+
             selectAllPlaylists() {
                 const checkboxes = document.querySelectorAll('.playlist-checkbox');
                 checkboxes.forEach(checkbox => checkbox.checked = true);
@@ -735,24 +863,7 @@
                 });
             }
 
-            populateTargetPlaylistDropdown() {
-                const targetSelect = document.getElementById('targetPlaylist');
-                
-                // Clear existing options except the first one
-                while (targetSelect.children.length > 1) {
-                    targetSelect.removeChild(targetSelect.lastChild);
-                }
-                
-                // Add owned playlists as options
-                this.allPlaylists.forEach(playlist => {
-                    if (playlist.owner.id === this.currentUserId) {
-                        const option = document.createElement('option');
-                        option.value = playlist.id;
-                        option.textContent = playlist.name;
-                        targetSelect.appendChild(option);
-                    }
-                });
-            }
+            updateSelectionStats() {
                 const selectedPlaylists = this.getSelectedPlaylists();
                 const totalTracks = selectedPlaylists.reduce((sum, p) => sum + p.tracks.total, 0);
                 
@@ -777,240 +888,3 @@
 
                 try {
                     this.showStatus('Analyzing selected playlists...', 'info');
-                    this.updateProgress('Starting analysis...', 0);
-
-                    // Get all tracks from selected playlists
-                    const allTracks = [];
-                    const trackUris = new Set();
-                    let processedPlaylists = 0;
-
-                    for (const playlist of selectedPlaylists) {
-                        this.updateProgress(`Analyzing "${playlist.name}"...`, (processedPlaylists / selectedPlaylists.length) * 50);
-                        
-                        const tracks = await this.getPlaylistTracks(playlist.id);
-                        tracks.forEach(track => {
-                            if (track.track && track.track.id && track.track.type === 'track') {
-                                allTracks.push(track.track);
-                                trackUris.add(track.track.uri);
-                            }
-                        });
-                        processedPlaylists++;
-                    }
-
-                    this.updateProgress('Applying filters...', 75);
-
-                    // Apply filters
-                    const filteredTracks = this.applyFilters(allTracks);
-                    
-                    // Update stats
-                    document.getElementById('uniqueTracks').textContent = trackUris.size.toLocaleString();
-                    document.getElementById('finalTracks').textContent = filteredTracks.length.toLocaleString();
-                    
-                    // Show preview
-                    this.showTrackPreview(filteredTracks.slice(0, 20));
-                    document.getElementById('previewPanel').classList.remove('hidden');
-                    
-                    this.updateProgress('Analysis complete!', 100);
-                    this.showStatus(`Analysis complete! ${filteredTracks.length} tracks will be added to your merged playlist`, 'success');
-
-                } catch (error) {
-                    this.showStatus('Error analyzing playlists: ' + error.message, 'error');
-                    console.error('Analysis error:', error);
-                } finally {
-                    analyzeBtn.innerHTML = originalText;
-                    analyzeBtn.disabled = false;
-                    setTimeout(() => {
-                        document.getElementById('progressDetail').classList.add('hidden');
-                    }, 3000);
-                }
-            }
-
-            applyFilters(tracks) {
-                const minYear = parseInt(document.getElementById('minYear').value) || 0;
-                const maxYear = parseInt(document.getElementById('maxYear').value) || 3000;
-                const minDuration = parseInt(document.getElementById('minDuration').value) || 0;
-                const maxDuration = parseInt(document.getElementById('maxDuration').value) || Number.MAX_SAFE_INTEGER;
-                const excludeExplicit = document.getElementById('explicitFilter').checked;
-
-                return tracks.filter(track => {
-                    // Year filter
-                    const releaseDate = track.album?.release_date;
-                    if (releaseDate) {
-                        const year = parseInt(releaseDate.substring(0, 4));
-                        if (year < minYear || year > maxYear) return false;
-                    }
-
-                    // Duration filter (convert to seconds)
-                    const durationSec = Math.round(track.duration_ms / 1000);
-                    if (durationSec < minDuration || durationSec > maxDuration) return false;
-
-                    // Explicit filter
-                    if (excludeExplicit && track.explicit) return false;
-
-                    return true;
-                });
-            }
-
-            showTrackPreview(tracks) {
-                const preview = document.getElementById('trackPreview');
-                preview.innerHTML = tracks.map(track => `
-                    <div class="track-item">
-                        <span class="track-name">${track.name}</span>
-                        <span class="track-artist">${track.artists.map(a => a.name).join(', ')}</span>
-                        ${track.explicit ? '<span class="duplicate-indicator">EXPLICIT</span>' : ''}
-                    </div>
-                `).join('');
-            }
-
-            updateProgress(text, percentage) {
-                document.getElementById('progressDetail').classList.remove('hidden');
-                document.getElementById('progressText').textContent = text;
-                document.getElementById('progressFill').style.width = percentage + '%';
-                document.getElementById('progressStats').textContent = `${Math.round(percentage)}% complete`;
-            }
-                const selectedPlaylists = this.getSelectedPlaylists();
-                
-                if (selectedPlaylists.length === 0) {
-                    this.showStatus('Please select at least one playlist to merge', 'error');
-                    return;
-                }
-
-                const token = localStorage.getItem('spotify_access_token');
-                if (!token) {
-                    this.showStatus('Please log in first', 'error');
-                    return;
-                }
-
-                const mergeBtn = document.getElementById('mergeBtn');
-                const originalText = mergeBtn.innerHTML;
-                mergeBtn.innerHTML = '<div class="loading"></div>Merging...';
-                mergeBtn.disabled = true;
-
-                try {
-                    this.showStatus(`Starting merge of ${selectedPlaylists.length} playlists...`, 'info');
-
-                    // Get all tracks from selected playlists
-                    const allTracks = new Set();
-                    let processedPlaylists = 0;
-
-                    for (const playlist of selectedPlaylists) {
-                        this.showStatus(`Processing "${playlist.name}" (${processedPlaylists + 1}/${selectedPlaylists.length})...`, 'info');
-                        
-                        const tracks = await this.getPlaylistTracks(playlist.id);
-                        tracks.forEach(track => {
-                            if (track.track && track.track.id && track.track.type === 'track') {
-                                allTracks.add(track.track.uri);
-                            }
-                        });
-                        processedPlaylists++;
-                    }
-
-                    const uniqueTrackUris = Array.from(allTracks);
-                    this.showStatus(`Found ${uniqueTrackUris.length} unique tracks. Creating merged playlist...`, 'info');
-
-                    // Get custom name and description
-                    const playlistName = document.getElementById('playlistName').value || `Merged Playlist - ${new Date().toLocaleDateString()}`;
-                    const playlistDescription = document.getElementById('playlistDescription').value || `Merged from ${selectedPlaylists.length} playlists on ${new Date().toLocaleString()}`;
-
-                    // Create new playlist
-                    const newPlaylist = await this.spotifyApiCall('/v1/me/playlists', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            name: playlistName,
-                            description: playlistDescription,
-                            public: false
-                        })
-                    });
-
-                    // Add tracks in batches of 100 (Spotify's limit)
-                    const batchSize = 100;
-                    for (let i = 0; i < uniqueTrackUris.length; i += batchSize) {
-                        const batch = uniqueTrackUris.slice(i, i + batchSize);
-                        await this.spotifyApiCall(`/v1/playlists/${newPlaylist.id}/tracks`, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                uris: batch
-                            })
-                        });
-                        this.showStatus(`Added ${Math.min(i + batchSize, uniqueTrackUris.length)}/${uniqueTrackUris.length} tracks...`, 'info');
-                    }
-
-                    this.showStatus(`🎉 Successfully created "${playlistName}" with ${uniqueTrackUris.length} tracks from ${selectedPlaylists.length} playlists!`, 'success');
-
-                } catch (error) {
-                    this.showStatus('Error merging playlists: ' + error.message, 'error');
-                    console.error('Merge error:', error);
-                } finally {
-                    mergeBtn.innerHTML = originalText;
-                    mergeBtn.disabled = false;
-                }
-            }
-
-            async getAllPlaylists() {
-                const playlists = [];
-                let url = '/v1/me/playlists?limit=50';
-
-                while (url) {
-                    const response = await this.spotifyApiCall(url);
-                    playlists.push(...response.items);
-                    url = response.next ? response.next.replace('https://api.spotify.com', '') : null;
-                }
-
-                return playlists;
-            }
-
-            async getPlaylistTracks(playlistId) {
-                const tracks = [];
-                let url = `/v1/playlists/${playlistId}/tracks?limit=100`;
-
-                while (url) {
-                    const response = await this.spotifyApiCall(url);
-                    tracks.push(...response.items);
-                    url = response.next ? response.next.replace('https://api.spotify.com', '') : null;
-                }
-
-                return tracks;
-            }
-
-            async spotifyApiCall(endpoint, options = {}) {
-                const token = localStorage.getItem('spotify_access_token');
-                const url = endpoint.startsWith('http') ? endpoint : `https://api.spotify.com${endpoint}`;
-
-                const response = await fetch(url, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    },
-                    ...options
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.text();
-                    throw new Error(`Spotify API error: ${response.status} - ${errorData}`);
-                }
-
-                return response.json();
-            }
-
-            showStatus(message, type = 'info') {
-                const statusDiv = document.getElementById('status');
-                statusDiv.innerHTML = message;
-                statusDiv.className = `status ${type}`;
-                
-                if (type === 'success' || type === 'info') {
-                    setTimeout(() => {
-                        statusDiv.innerHTML = '';
-                        statusDiv.className = '';
-                    }, 5000);
-                }
-            }
-        }
-
-        // Initialize the app when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            new SpotifyPKCEApp();
-        });
-    </script>
-</body>
-</html>
