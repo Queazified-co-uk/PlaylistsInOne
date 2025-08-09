@@ -38,6 +38,7 @@ Your existing playlists are left untouched, and the tool only requests the minim
 
 ## How It Works
 
+```mermaid
 flowchart LR
     A[User visits Playlists to One website] --> B[Login with music account]
     B --> C[Authorize minimal permissions]
@@ -45,7 +46,7 @@ flowchart LR
     D --> E[Combine tracks into one master list]
     E --> F[Create new 'Playlists to One' playlist]
     F --> G[Done — enjoy your unified playlist]
-
+```
 
 ## Usage
 1. Go to the Playlists → One website.
