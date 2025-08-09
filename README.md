@@ -10,7 +10,6 @@ It works directly in your browser — no downloads, no installation — just log
 - [Features](#features)
 - [Live Website](#live-website)
 - [How It Works](#how-it-works)
-- [Screenshots](#screenshots)
 - [Usage](#usage)
 - [Permissions & Security](#permissions--security)
 - [License](#license)
@@ -39,7 +38,7 @@ Your existing playlists are left untouched, and the tool only requests the minim
 
 ## How It Works
 
-<!--```mermaid
+```mermaid
 flowchart LR
     A[User visits Playlists → One website] --> B[Login with music account]
     B --> C[Authorize minimal permissions]
@@ -47,7 +46,7 @@ flowchart LR
     D --> E[Combine tracks into one master list]
     E --> F[Create new "Playlists → One" playlist]
     F --> G[Done — enjoy your unified playlist]
-    -->
+```
 
 ## Usage
 1. Go to the Playlists → One website.
