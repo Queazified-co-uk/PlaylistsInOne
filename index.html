@@ -389,13 +389,13 @@
                     this.showStatus(`Found ${uniqueTrackUris.length} unique tracks. Creating merged playlist...`, 'info');
 
                     // Create new playlist
-                    const playlistName = `Merged Playlist - ${new Date().toLocaleDateString()}`;
+                    const playlistName = `merger.queazified.co.uk Playlist`;
                     const newPlaylist = await this.spotifyApiCall('/v1/me/playlists', {
                         method: 'POST',
                         body: JSON.stringify({
                             name: playlistName,
-                            description: `All your playlists merged into one! Created on ${new Date().toLocaleString()}`,
-                            public: false
+                            description: `All your playlists merged into one! Created on ${new Date().toLocaleString()} by merger.queazified.co.uk!`,
+                            public: true
                         })
                     });
 
