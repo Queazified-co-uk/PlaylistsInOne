@@ -88,8 +88,185 @@
             box-shadow: none;
         }
 
-        .hidden {
-            display: none;
+        .stats-panel {
+            background: rgba(29, 185, 84, 0.1);
+            border: 1px solid rgba(29, 185, 84, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1DB954;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #b3b3b3;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .preview-panel h4 {
+            color: #1DB954;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .track-item .track-name {
+            font-weight: bold;
+            color: white;
+            margin-right: 8px;
+        }
+
+        .track-item .track-artist {
+            color: #b3b3b3;
+        }
+
+        .duplicate-indicator {
+            background: rgba(255, 193, 7, 0.8);
+            color: #000;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+            font-weight: bold;
+        }
+
+        .merge-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .setting-group input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #1DB954;
+        }
+
+        .setting-group input[type="radio"] {
+            margin-right: 8px;
+            accent-color: #1DB954;
+        }
+
+        .filter-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .filter-section h5 {
+            color: #1DB954;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .range-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-input input {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 12px;
+        }
+
+        .progress-detail {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .merge-options select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #666;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .merge-options select option {
+            background: #191414;
+            color: white;
+        }
+
+        .merge-options select:focus {
+            outline: none;
+            border-color: #1DB954;
         }
 
         .status {
@@ -148,7 +325,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Playlists in One</h1>
+        <h1>Playlists in One</h1>
         <p>Merge all your Spotify playlists into one super playlist!</p>
         
         <div id="loginSection">
@@ -161,7 +338,96 @@
                 <p id="userEmail"></p>
             </div>
             
-            <button id="mergeBtn" class="button">🔀 Merge My Playlists</button>
+            <button id="loadPlaylistsBtn" class="button">📋 Load My Playlists</button>
+            
+            <div id="playlistSelector" class="playlist-selector hidden">
+                <h3>Select Playlists to Merge</h3>
+                <div class="selection-controls">
+                    <button id="selectAllBtn">Select All</button>
+                    <button id="selectNoneBtn">Select None</button>
+                    <button id="toggleOwnedBtn">Toggle Owned Only</button>
+                </div>
+                <div id="playlistList"></div>
+            </div>
+            
+            <div id="mergeOptions" class="merge-options hidden">
+                <h3>Merge Options</h3>
+                <div class="merge-settings">
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="publicPlaylist"> Make playlist public
+                        </label>
+                        <label>
+                            <input type="checkbox" id="shufflePlaylist"> Shuffle tracks
+                        </label>
+                        <label>
+                            <input type="checkbox" id="removeDuplicates" checked> Remove duplicates
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h5>🎛️ Advanced Filters (Optional)</h5>
+                    <div class="filter-controls">
+                        <div class="range-input">
+                            <label>Min Year:</label>
+                            <input type="number" id="minYear" placeholder="1970" min="1900" max="2024">
+                        </div>
+                        <div class="range-input">
+                            <label>Max Year:</label>
+                            <input type="number" id="maxYear" placeholder="2024" min="1900" max="2024">
+                        </div>
+                        <div class="range-input">
+                            <label>Min Duration (sec):</label>
+                            <input type="number" id="minDuration" placeholder="30" min="1">
+                        </div>
+                        <div class="range-input">
+                            <label>Max Duration (sec):</label>
+                            <input type="number" id="maxDuration" placeholder="600" min="1">
+                        </label>
+                        </div>
+                        <label>
+                            <input type="checkbox" id="explicitFilter"> Exclude explicit content
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div id="statsPanel" class="stats-panel hidden">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalPlaylists">0</div>
+                    <div class="stat-label">Selected</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalTracks">0</div>
+                    <div class="stat-label">Total Tracks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="uniqueTracks">0</div>
+                    <div class="stat-label">After Dedup</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="finalTracks">0</div>
+                    <div class="stat-label">Final Count</div>
+                </div>
+            </div>
+
+            <button id="analyzeBtn" class="button hidden">📊 Analyze Selection</button>
+            <button id="mergeBtn" class="button hidden">🔀 Merge Selected Playlists</button>
+            
+            <div id="previewPanel" class="preview-panel hidden">
+                <h4>🎵 Track Preview (First 20 tracks)</h4>
+                <div id="trackPreview"></div>
+            </div>
+            
+            <div id="progressDetail" class="progress-detail hidden">
+                <div id="progressText">Ready to merge...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressStats"></div>
+            </div>
+            
             <button id="logoutBtn" class="button logout">Logout</button>
         </div>
         
@@ -171,10 +437,11 @@
     <script>
         class SpotifyPKCEApp {
             constructor() {
-                this.clientId = '2cf9bbde938149269d0da9bb6438ab40'; // Replace with your actual client ID
+                this.clientId = '2cf9bbde938149269d0da9bb6438ab40';
                 this.redirectUri = 'https://merger.queazified.co.uk/';
                 this.workerEndpoint = 'https://spotifyauthproxy-pio.qzd.workers.dev/';
                 this.scopes = 'playlist-read-private playlist-modify-public playlist-modify-private user-read-private user-read-email';
+                this.allPlaylists = [];
                 
                 this.init();
             }
@@ -188,7 +455,19 @@
             setupEventListeners() {
                 document.getElementById('loginBtn').addEventListener('click', () => this.login());
                 document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
-                document.getElementById('mergeBtn').addEventListener('click', () => this.mergePlaylist());
+                document.getElementById('loadPlaylistsBtn').addEventListener('click', () => this.loadPlaylists());
+                document.getElementById('analyzeBtn').addEventListener('click', () => this.analyzeSelection());
+                document.getElementById('mergeBtn').addEventListener('click', () => this.mergeSelectedPlaylists());
+                document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllPlaylists());
+                document.getElementById('selectNoneBtn').addEventListener('click', () => this.selectNoPlaylists());
+                document.getElementById('toggleOwnedBtn').addEventListener('click', () => this.toggleOwnedPlaylists());
+                
+                // Update stats when selection changes
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('playlist-checkbox')) {
+                        this.updateSelectionStats();
+                    }
+                });
             }
 
             // Generate PKCE code verifier and challenge
@@ -261,24 +540,40 @@
                     throw new Error('No code verifier found in localStorage');
                 }
 
-                const response = await fetch(this.workerEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: code,
-                        code_verifier: codeVerifier,
-                        redirect_uri: this.redirectUri
-                    })
-                });
+                console.log('Exchanging code for tokens...', { code, codeVerifier, redirectUri: this.redirectUri });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+                try {
+                    const response = await fetch(this.workerEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            code: code,
+                            code_verifier: codeVerifier,
+                            redirect_uri: this.redirectUri
+                        })
+                    });
+
+                    console.log('Worker response status:', response.status);
+                    console.log('Worker response headers:', [...response.headers.entries()]);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Worker error response:', errorText);
+                        throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+                    }
+
+                    const tokens = await response.json();
+                    console.log('Tokens received:', { hasAccessToken: !!tokens.access_token, hasRefreshToken: !!tokens.refresh_token });
+                } catch (fetchError) {
+                    console.error('Fetch error details:', fetchError);
+                    if (fetchError.message === 'Failed to fetch') {
+                        throw new Error('Cannot connect to auth proxy. Check if your Cloudflare Worker is running and has CORS enabled.');
+                    }
+                    throw fetchError;
                 }
-
-                const tokens = await response.json();
                 
                 // Store access token
                 localStorage.setItem('spotify_access_token', tokens.access_token);
@@ -347,7 +642,239 @@
                 }
             }
 
-            async mergePlaylist() {
+            async loadPlaylists() {
+                const token = localStorage.getItem('spotify_access_token');
+                if (!token) {
+                    this.showStatus('Please log in first', 'error');
+                    return;
+                }
+
+                const loadBtn = document.getElementById('loadPlaylistsBtn');
+                const originalText = loadBtn.innerHTML;
+                loadBtn.innerHTML = '<div class="loading"></div>Loading...';
+                loadBtn.disabled = true;
+
+                try {
+                    this.showStatus('Fetching your playlists...', 'info');
+                    
+                    // Get user info for owned playlist detection
+                    const userResponse = await this.spotifyApiCall('/v1/me');
+                    this.currentUserId = userResponse.id;
+
+                    // Get all playlists
+                    this.allPlaylists = await this.getAllPlaylists();
+                    this.renderPlaylistSelector();
+                    this.populateTargetPlaylistDropdown();
+                    this.updateSelectionStats();
+                    
+                    document.getElementById('playlistSelector').classList.remove('hidden');
+                    
+                    this.showStatus(`Loaded ${this.allPlaylists.length} playlists. Select which ones to merge!`, 'success');
+
+                } catch (error) {
+                    this.showStatus('Error loading playlists: ' + error.message, 'error');
+                    console.error('Load playlists error:', error);
+                } finally {
+                    loadBtn.innerHTML = originalText;
+                    loadBtn.disabled = false;
+                }
+            }
+
+            renderPlaylistSelector() {
+                const playlistList = document.getElementById('playlistList');
+                playlistList.innerHTML = '';
+
+                this.allPlaylists.forEach((playlist, index) => {
+                    const isOwned = playlist.owner.id === this.currentUserId;
+                    const trackCount = playlist.tracks.total;
+                    
+                    const playlistItem = document.createElement('div');
+                    playlistItem.className = 'playlist-item';
+                    playlistItem.innerHTML = `
+                        <input type="checkbox" class="playlist-checkbox" id="playlist-${index}" data-playlist-id="${playlist.id}" ${isOwned ? 'checked' : ''}>
+                        <div class="playlist-info">
+                            <div class="playlist-name">${playlist.name}</div>
+                            <div class="playlist-details">
+                                ${trackCount} tracks • ${isOwned ? 'Owned by you' : `By ${playlist.owner.display_name}`}
+                                ${playlist.public ? ' • Public' : ' • Private'}
+                            </div>
+                        </div>
+                    `;
+                    
+                    playlistList.appendChild(playlistItem);
+                });
+            }
+
+            selectAllPlaylists() {
+                const checkboxes = document.querySelectorAll('.playlist-checkbox');
+                checkboxes.forEach(checkbox => checkbox.checked = true);
+                this.updateSelectionStats();
+            }
+
+            selectNoPlaylists() {
+                const checkboxes = document.querySelectorAll('.playlist-checkbox');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+                this.updateSelectionStats();
+            }
+
+            toggleOwnedPlaylists() {
+                const checkboxes = document.querySelectorAll('.playlist-checkbox');
+                checkboxes.forEach((checkbox, index) => {
+                    const playlist = this.allPlaylists[index];
+                    const isOwned = playlist.owner.id === this.currentUserId;
+                    checkbox.checked = isOwned;
+                });
+                this.updateSelectionStats();
+            }
+
+            getSelectedPlaylists() {
+                const checkboxes = document.querySelectorAll('.playlist-checkbox:checked');
+                return Array.from(checkboxes).map(checkbox => {
+                    const playlistId = checkbox.dataset.playlistId;
+                    return this.allPlaylists.find(p => p.id === playlistId);
+                });
+            }
+
+            populateTargetPlaylistDropdown() {
+                const targetSelect = document.getElementById('targetPlaylist');
+                
+                // Clear existing options except the first one
+                while (targetSelect.children.length > 1) {
+                    targetSelect.removeChild(targetSelect.lastChild);
+                }
+                
+                // Add owned playlists as options
+                this.allPlaylists.forEach(playlist => {
+                    if (playlist.owner.id === this.currentUserId) {
+                        const option = document.createElement('option');
+                        option.value = playlist.id;
+                        option.textContent = playlist.name;
+                        targetSelect.appendChild(option);
+                    }
+                });
+            }
+                const selectedPlaylists = this.getSelectedPlaylists();
+                const totalTracks = selectedPlaylists.reduce((sum, p) => sum + p.tracks.total, 0);
+                
+                document.getElementById('totalPlaylists').textContent = selectedPlaylists.length;
+                document.getElementById('totalTracks').textContent = totalTracks.toLocaleString();
+                document.getElementById('uniqueTracks').textContent = '?';
+                document.getElementById('finalTracks').textContent = '?';
+            }
+
+            async analyzeSelection() {
+                const selectedPlaylists = this.getSelectedPlaylists();
+                
+                if (selectedPlaylists.length === 0) {
+                    this.showStatus('Please select at least one playlist to analyze', 'error');
+                    return;
+                }
+
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                const originalText = analyzeBtn.innerHTML;
+                analyzeBtn.innerHTML = '<div class="loading"></div>Analyzing...';
+                analyzeBtn.disabled = true;
+
+                try {
+                    this.showStatus('Analyzing selected playlists...', 'info');
+                    this.updateProgress('Starting analysis...', 0);
+
+                    // Get all tracks from selected playlists
+                    const allTracks = [];
+                    const trackUris = new Set();
+                    let processedPlaylists = 0;
+
+                    for (const playlist of selectedPlaylists) {
+                        this.updateProgress(`Analyzing "${playlist.name}"...`, (processedPlaylists / selectedPlaylists.length) * 50);
+                        
+                        const tracks = await this.getPlaylistTracks(playlist.id);
+                        tracks.forEach(track => {
+                            if (track.track && track.track.id && track.track.type === 'track') {
+                                allTracks.push(track.track);
+                                trackUris.add(track.track.uri);
+                            }
+                        });
+                        processedPlaylists++;
+                    }
+
+                    this.updateProgress('Applying filters...', 75);
+
+                    // Apply filters
+                    const filteredTracks = this.applyFilters(allTracks);
+                    
+                    // Update stats
+                    document.getElementById('uniqueTracks').textContent = trackUris.size.toLocaleString();
+                    document.getElementById('finalTracks').textContent = filteredTracks.length.toLocaleString();
+                    
+                    // Show preview
+                    this.showTrackPreview(filteredTracks.slice(0, 20));
+                    document.getElementById('previewPanel').classList.remove('hidden');
+                    
+                    this.updateProgress('Analysis complete!', 100);
+                    this.showStatus(`Analysis complete! ${filteredTracks.length} tracks will be added to your merged playlist`, 'success');
+
+                } catch (error) {
+                    this.showStatus('Error analyzing playlists: ' + error.message, 'error');
+                    console.error('Analysis error:', error);
+                } finally {
+                    analyzeBtn.innerHTML = originalText;
+                    analyzeBtn.disabled = false;
+                    setTimeout(() => {
+                        document.getElementById('progressDetail').classList.add('hidden');
+                    }, 3000);
+                }
+            }
+
+            applyFilters(tracks) {
+                const minYear = parseInt(document.getElementById('minYear').value) || 0;
+                const maxYear = parseInt(document.getElementById('maxYear').value) || 3000;
+                const minDuration = parseInt(document.getElementById('minDuration').value) || 0;
+                const maxDuration = parseInt(document.getElementById('maxDuration').value) || Number.MAX_SAFE_INTEGER;
+                const excludeExplicit = document.getElementById('explicitFilter').checked;
+
+                return tracks.filter(track => {
+                    // Year filter
+                    const releaseDate = track.album?.release_date;
+                    if (releaseDate) {
+                        const year = parseInt(releaseDate.substring(0, 4));
+                        if (year < minYear || year > maxYear) return false;
+                    }
+
+                    // Duration filter (convert to seconds)
+                    const durationSec = Math.round(track.duration_ms / 1000);
+                    if (durationSec < minDuration || durationSec > maxDuration) return false;
+
+                    // Explicit filter
+                    if (excludeExplicit && track.explicit) return false;
+
+                    return true;
+                });
+            }
+
+            showTrackPreview(tracks) {
+                const preview = document.getElementById('trackPreview');
+                preview.innerHTML = tracks.map(track => `
+                    <div class="track-item">
+                        <span class="track-name">${track.name}</span>
+                        <span class="track-artist">${track.artists.map(a => a.name).join(', ')}</span>
+                        ${track.explicit ? '<span class="duplicate-indicator">EXPLICIT</span>' : ''}
+                    </div>
+                `).join('');
+            }
+
+            updateProgress(text, percentage) {
+                document.getElementById('progressDetail').classList.remove('hidden');
+                document.getElementById('progressText').textContent = text;
+                document.getElementById('progressFill').style.width = percentage + '%';
+                document.getElementById('progressStats').textContent = `${Math.round(percentage)}% complete`;
+            }
+                const selectedPlaylists = this.getSelectedPlaylists();
+                
+                if (selectedPlaylists.length === 0) {
+                    this.showStatus('Please select at least one playlist to merge', 'error');
+                    return;
+                }
+
                 const token = localStorage.getItem('spotify_access_token');
                 if (!token) {
                     this.showStatus('Please log in first', 'error');
@@ -360,21 +887,15 @@
                 mergeBtn.disabled = true;
 
                 try {
-                    this.showStatus('Fetching your playlists...', 'info');
-                    
-                    // Get user ID
-                    const userResponse = await this.spotifyApiCall('/v1/me');
-                    const userId = userResponse.id;
+                    this.showStatus(`Starting merge of ${selectedPlaylists.length} playlists...`, 'info');
 
-                    // Get all playlists
-                    const playlists = await this.getAllPlaylists();
-                    this.showStatus(`Found ${playlists.length} playlists. Getting tracks...`, 'info');
-
-                    // Get all tracks from all playlists
+                    // Get all tracks from selected playlists
                     const allTracks = new Set();
                     let processedPlaylists = 0;
 
-                    for (const playlist of playlists) {
+                    for (const playlist of selectedPlaylists) {
+                        this.showStatus(`Processing "${playlist.name}" (${processedPlaylists + 1}/${selectedPlaylists.length})...`, 'info');
+                        
                         const tracks = await this.getPlaylistTracks(playlist.id);
                         tracks.forEach(track => {
                             if (track.track && track.track.id && track.track.type === 'track') {
@@ -382,20 +903,22 @@
                             }
                         });
                         processedPlaylists++;
-                        this.showStatus(`Processed ${processedPlaylists}/${playlists.length} playlists...`, 'info');
                     }
 
                     const uniqueTrackUris = Array.from(allTracks);
                     this.showStatus(`Found ${uniqueTrackUris.length} unique tracks. Creating merged playlist...`, 'info');
 
+                    // Get custom name and description
+                    const playlistName = document.getElementById('playlistName').value || `Merged Playlist - ${new Date().toLocaleDateString()}`;
+                    const playlistDescription = document.getElementById('playlistDescription').value || `Merged from ${selectedPlaylists.length} playlists on ${new Date().toLocaleString()}`;
+
                     // Create new playlist
-                    const playlistName = `merger.queazified.co.uk Playlist`;
                     const newPlaylist = await this.spotifyApiCall('/v1/me/playlists', {
                         method: 'POST',
                         body: JSON.stringify({
                             name: playlistName,
-                            description: `All your playlists merged into one! Created on ${new Date().toLocaleString()} by merger.queazified.co.uk!`,
-                            public: true
+                            description: playlistDescription,
+                            public: false
                         })
                     });
 
@@ -412,7 +935,7 @@
                         this.showStatus(`Added ${Math.min(i + batchSize, uniqueTrackUris.length)}/${uniqueTrackUris.length} tracks...`, 'info');
                     }
 
-                    this.showStatus(`🎉 Successfully created "${playlistName}" with ${uniqueTrackUris.length} tracks!`, 'success');
+                    this.showStatus(`🎉 Successfully created "${playlistName}" with ${uniqueTrackUris.length} tracks from ${selectedPlaylists.length} playlists!`, 'success');
 
                 } catch (error) {
                     this.showStatus('Error merging playlists: ' + error.message, 'error');
