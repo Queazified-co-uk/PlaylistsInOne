@@ -888,3 +888,240 @@
 
                 try {
                     this.showStatus('Analyzing selected playlists...', 'info');
+                    this.updateProgress('Starting analysis...', 0);
+
+                    // Get all tracks from selected playlists
+                    const allTracks = [];
+                    const trackUris = new Set();
+                    let processedPlaylists = 0;
+
+                    for (const playlist of selectedPlaylists) {
+                        this.updateProgress(`Analyzing "${playlist.name}"...`, (processedPlaylists / selectedPlaylists.length) * 50);
+                        
+                        const tracks = await this.getPlaylistTracks(playlist.id);
+                        tracks.forEach(track => {
+                            if (track.track && track.track.id && track.track.type === 'track') {
+                                allTracks.push(track.track);
+                                trackUris.add(track.track.uri);
+                            }
+                        });
+                        processedPlaylists++;
+                    }
+
+                    this.updateProgress('Applying filters...', 75);
+
+                    // Apply filters
+                    const filteredTracks = this.applyFilters(allTracks);
+                    
+                    // Update stats
+                    document.getElementById('uniqueTracks').textContent = trackUris.size.toLocaleString();
+                    document.getElementById('finalTracks').textContent = filteredTracks.length.toLocaleString();
+                    
+                    // Show preview
+                    this.showTrackPreview(filteredTracks.slice(0, 20));
+                    document.getElementById('previewPanel').classList.remove('hidden');
+                    
+                    this.updateProgress('Analysis complete!', 100);
+                    this.showStatus(`Analysis complete! ${filteredTracks.length} tracks will be added to your merged playlist`, 'success');
+
+                } catch (error) {
+                    this.showStatus('Error analyzing playlists: ' + error.message, 'error');
+                    console.error('Analysis error:', error);
+                } finally {
+                    analyzeBtn.innerHTML = originalText;
+                    analyzeBtn.disabled = false;
+                    setTimeout(() => {
+                        document.getElementById('progressDetail').classList.add('hidden');
+                    }, 3000);
+                }
+            }
+
+            applyFilters(tracks) {
+                const minYear = parseInt(document.getElementById('minYear').value) || 0;
+                const maxYear = parseInt(document.getElementById('maxYear').value) || 3000;
+                const minDuration = parseInt(document.getElementById('minDuration').value) || 0;
+                const maxDuration = parseInt(document.getElementById('maxDuration').value) || Number.MAX_SAFE_INTEGER;
+                const excludeExplicit = document.getElementById('explicitFilter').checked;
+
+                return tracks.filter(track => {
+                    // Year filter
+                    const releaseDate = track.album?.release_date;
+                    if (releaseDate) {
+                        const year = parseInt(releaseDate.substring(0, 4));
+                        if (year < minYear || year > maxYear) return false;
+                    }
+
+                    // Duration filter (convert to seconds)
+                    const durationSec = Math.round(track.duration_ms / 1000);
+                    if (durationSec < minDuration || durationSec > maxDuration) return false;
+
+                    // Explicit filter
+                    if (excludeExplicit && track.explicit) return false;
+
+                    return true;
+                });
+            }
+
+            showTrackPreview(tracks) {
+                const preview = document.getElementById('trackPreview');
+                preview.innerHTML = tracks.map(track => `
+                    <div class="track-item">
+                        <span class="track-name">${track.name}</span>
+                        <span class="track-artist">${track.artists.map(a => a.name).join(', ')}</span>
+                        ${track.explicit ? '<span class="duplicate-indicator">EXPLICIT</span>' : ''}
+                    </div>
+                `).join('');
+            }
+
+            updateProgress(text, percentage) {
+                document.getElementById('progressDetail').classList.remove('hidden');
+                document.getElementById('progressText').textContent = text;
+                document.getElementById('progressFill').style.width = percentage + '%';
+                document.getElementById('progressStats').textContent = `${Math.round(percentage)}% complete`;
+            }
+                const selectedPlaylists = this.getSelectedPlaylists();
+                
+                if (selectedPlaylists.length === 0) {
+                    this.showStatus('Please select at least one playlist to merge', 'error');
+                    return;
+                }
+
+                const token = localStorage.getItem('spotify_access_token');
+                if (!token) {
+                    this.showStatus('Please log in first', 'error');
+                    return;
+                }
+
+                const mergeBtn = document.getElementById('mergeBtn');
+                const originalText = mergeBtn.innerHTML;
+                mergeBtn.innerHTML = '<div class="loading"></div>Merging...';
+                mergeBtn.disabled = true;
+
+                try {
+                    this.showStatus(`Starting merge of ${selectedPlaylists.length} playlists...`, 'info');
+
+                    // Get all tracks from selected playlists
+                    const allTracks = new Set();
+                    let processedPlaylists = 0;
+
+                    for (const playlist of selectedPlaylists) {
+                        this.showStatus(`Processing "${playlist.name}" (${processedPlaylists + 1}/${selectedPlaylists.length})...`, 'info');
+                        
+                        const tracks = await this.getPlaylistTracks(playlist.id);
+                        tracks.forEach(track => {
+                            if (track.track && track.track.id && track.track.type === 'track') {
+                                allTracks.add(track.track.uri);
+                            }
+                        });
+                        processedPlaylists++;
+                    }
+
+                    const uniqueTrackUris = Array.from(allTracks);
+                    this.showStatus(`Found ${uniqueTrackUris.length} unique tracks. Creating merged playlist...`, 'info');
+
+                    // Get custom name and description
+                    const playlistName = document.getElementById('playlistName').value || `Merged Playlist - ${new Date().toLocaleDateString()}`;
+                    const playlistDescription = document.getElementById('playlistDescription').value || `Merged from ${selectedPlaylists.length} playlists on ${new Date().toLocaleString()}`;
+
+                    // Create new playlist
+                    const newPlaylist = await this.spotifyApiCall('/v1/me/playlists', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name: playlistName,
+                            description: playlistDescription,
+                            public: false
+                        })
+                    });
+
+                    // Add tracks in batches of 100 (Spotify's limit)
+                    const batchSize = 100;
+                    for (let i = 0; i < uniqueTrackUris.length; i += batchSize) {
+                        const batch = uniqueTrackUris.slice(i, i + batchSize);
+                        await this.spotifyApiCall(`/v1/playlists/${newPlaylist.id}/tracks`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                uris: batch
+                            })
+                        });
+                        this.showStatus(`Added ${Math.min(i + batchSize, uniqueTrackUris.length)}/${uniqueTrackUris.length} tracks...`, 'info');
+                    }
+
+                    this.showStatus(`🎉 Successfully created "${playlistName}" with ${uniqueTrackUris.length} tracks from ${selectedPlaylists.length} playlists!`, 'success');
+
+                } catch (error) {
+                    this.showStatus('Error merging playlists: ' + error.message, 'error');
+                    console.error('Merge error:', error);
+                } finally {
+                    mergeBtn.innerHTML = originalText;
+                    mergeBtn.disabled = false;
+                }
+            }
+
+            async getAllPlaylists() {
+                const playlists = [];
+                let url = '/v1/me/playlists?limit=50';
+
+                while (url) {
+                    const response = await this.spotifyApiCall(url);
+                    playlists.push(...response.items);
+                    url = response.next ? response.next.replace('https://api.spotify.com', '') : null;
+                }
+
+                return playlists;
+            }
+
+            async getPlaylistTracks(playlistId) {
+                const tracks = [];
+                let url = `/v1/playlists/${playlistId}/tracks?limit=100`;
+
+                while (url) {
+                    const response = await this.spotifyApiCall(url);
+                    tracks.push(...response.items);
+                    url = response.next ? response.next.replace('https://api.spotify.com', '') : null;
+                }
+
+                return tracks;
+            }
+
+            async spotifyApiCall(endpoint, options = {}) {
+                const token = localStorage.getItem('spotify_access_token');
+                const url = endpoint.startsWith('http') ? endpoint : `https://api.spotify.com${endpoint}`;
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Spotify API error: ${response.status} - ${errorData}`);
+                }
+
+                return response.json();
+            }
+
+            showStatus(message, type = 'info') {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = message;
+                statusDiv.className = `status ${type}`;
+                
+                if (type === 'success' || type === 'info') {
+                    setTimeout(() => {
+                        statusDiv.innerHTML = '';
+                        statusDiv.className = '';
+                    }, 5000);
+                }
+            }
+        }
+
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SpotifyPKCEApp();
+        });
+    </script>
+</body>
+</html>
